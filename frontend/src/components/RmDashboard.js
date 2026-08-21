@@ -40,24 +40,41 @@ const RmDashboard = () => {
     setSearchParams({ tab: tabName });
   };
 
+  // Assign Task (Single Intern OR All Interns)
   const handleAssignTask = (e) => {
     e.preventDefault();
     if (!selectedInternId || !taskTitle.trim()) return;
 
-    const targetIntern = interns.find(i => i.id.toString() === selectedInternId.toString());
-
-    DB.assignTask({
-      intern_id: Number(selectedInternId),
-      intern_name: targetIntern ? targetIntern.full_name : 'Intern',
-      rm_id: currentUser.id,
-      title: taskTitle.trim(),
-      project: projectName.trim() || 'IMS Deliverable',
-      priority: priority,
-      due_date: dueDate || '2026-08-30'
-    });
+    if (selectedInternId === 'ALL') {
+      // Broadcast to all interns
+      interns.forEach(intern => {
+        DB.assignTask({
+          intern_id: Number(intern.id),
+          intern_name: intern.full_name,
+          rm_id: currentUser.id,
+          title: taskTitle.trim(),
+          project: projectName.trim() || 'IMS Deliverable',
+          priority: priority,
+          due_date: dueDate || '2026-08-30'
+        });
+      });
+    } else {
+      // Single intern
+      const targetIntern = interns.find(i => i.id.toString() === selectedInternId.toString());
+      DB.assignTask({
+        intern_id: Number(selectedInternId),
+        intern_name: targetIntern ? targetIntern.full_name : 'Intern',
+        rm_id: currentUser.id,
+        title: taskTitle.trim(),
+        project: projectName.trim() || 'IMS Deliverable',
+        priority: priority,
+        due_date: dueDate || '2026-08-30'
+      });
+    }
 
     setTasks(DB.getTasks());
     setShowTaskModal(false);
+    setSelectedInternId('');
     setTaskTitle('');
     setProjectName('');
     setDueDate('');
@@ -82,10 +99,8 @@ const RmDashboard = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f1f3f7', color: '#0f172a', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
       
-      {/* 1. DARK SLEEK SIDEBAR */}
+      {/* Sidebar */}
       <aside style={{ width: '250px', background: '#111215', color: '#94a3b8', padding: '24px 16px', display: 'flex', flexDirection: 'column', zIndex: 20 }}>
-        
-        {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 8px', marginBottom: '32px' }}>
           <div style={{ width: '32px', height: '32px', background: '#c8f135', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111215', fontWeight: '900', fontSize: '16px' }}>
             ⚡
@@ -93,7 +108,6 @@ const RmDashboard = () => {
           <span style={{ color: '#ffffff', fontWeight: '800', fontSize: '15px', letterSpacing: '0.5px' }}>IMS PORTAL</span>
         </div>
 
-        {/* Navigation Section */}
         <div style={{ fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.8px', padding: '0 12px', marginBottom: '8px' }}>
           General
         </div>
@@ -126,19 +140,15 @@ const RmDashboard = () => {
           </button>
         </nav>
 
-        {/* Logout */}
         <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '12px', border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontWeight: '700', fontSize: '13px', marginTop: 'auto' }}>
           <IconLogOut size={18} /> Logout
         </button>
       </aside>
 
-      {/* 2. MAIN BENTO WORKSPACE */}
+      {/* Main Workspace */}
       <main style={{ flex: 1, padding: '24px 32px', display: 'flex', gap: '24px', overflowY: 'auto' }}>
-        
-        {/* Left 75% Grid */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* Top Bar with Search */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h1 style={{ fontSize: '24px', fontWeight: '800', margin: 0, color: '#0f172a', letterSpacing: '-0.5px' }}>Dashboard</h1>
             <div style={{ width: '320px', position: 'relative' }}>
@@ -173,10 +183,9 @@ const RmDashboard = () => {
             </div>
           </div>
 
-          {/* TAB: DASHBOARD VIEW */}
+          {/* DASHBOARD TAB */}
           {activeTab === 'dashboard' && (
             <>
-              {/* Middle Row: Donut Split & Sprints Wave Chart */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '16px' }}>
                 <div className="bento-card" style={{ padding: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -228,7 +237,7 @@ const RmDashboard = () => {
                 </div>
               </div>
 
-              {/* Bottom Table: Assigned Deliverables */}
+              {/* Table */}
               <div className="bento-card" style={{ padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0 }}>Sprint Deliverables & Task Records</h3>
@@ -271,7 +280,7 @@ const RmDashboard = () => {
             </>
           )}
 
-          {/* TAB: DAILY REPORTS REVIEW */}
+          {/* REPORTS TAB */}
           {activeTab === 'reports' && (
             <div className="bento-card" style={{ padding: '24px' }}>
               <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 18px 0' }}>Daily Work Reports</h3>
@@ -297,7 +306,7 @@ const RmDashboard = () => {
             </div>
           )}
 
-          {/* TAB: LEAVE APPROVALS */}
+          {/* LEAVES TAB */}
           {activeTab === 'leaves' && (
             <div className="bento-card" style={{ padding: '24px' }}>
               <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 18px 0' }}>Leave Applications</h3>
@@ -325,7 +334,7 @@ const RmDashboard = () => {
 
         </div>
 
-        {/* Right 25% Sidebar Bento Panel */}
+        {/* Right Sidebar Bento Panel */}
         <div style={{ width: '280px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="bento-card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#c8f135', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800' }}>
@@ -377,7 +386,7 @@ const RmDashboard = () => {
 
       </main>
 
-      {/* Task Assignment Modal */}
+      {/* Task Assignment Modal with "All Interns" Option */}
       {showTaskModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ background: '#ffffff', borderRadius: '18px', padding: '28px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
@@ -387,6 +396,7 @@ const RmDashboard = () => {
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>Select Intern</label>
                 <select value={selectedInternId} onChange={(e) => setSelectedInternId(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
                   <option value="">Choose intern...</option>
+                  <option value="ALL" style={{ fontWeight: '800', color: '#16a34a' }}>🌟 All Interns (Assign to Everyone)</option>
                   {interns.map(i => <option key={i.id} value={i.id}>{i.full_name}</option>)}
                 </select>
               </div>
