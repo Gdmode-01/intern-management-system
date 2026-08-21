@@ -2,7 +2,6 @@
 const USERS_KEY = 'ims_users_db';
 const LEAVES_KEY = 'ims_leaves_db';
 const REPORTS_KEY = 'ims_reports_db';
-const TASKS_KEY = 'ims_tasks_db';
 const ATTENDANCE_KEY = 'ims_attendance_db';
 
 // Seed Initial Accounts (Default credentials)
