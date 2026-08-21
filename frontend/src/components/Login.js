@@ -1,83 +1,105 @@
 import React, { useState } from 'react';
+import { DB } from '../services/store';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const executeAuth = (userEmail, role, path, name) => {
-    localStorage.setItem('token', 'auth-token-' + Date.now());
-    localStorage.setItem('user', JSON.stringify({ id: 1, email: userEmail, role, full_name: name }));
-    window.location.href = path;
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
+      setErrorMessage('Please enter both email and password.');
+      return;
+    }
+
+    const users = DB.getUsers();
+    const matchedUser = users.find(u => u.email.toLowerCase() === cleanEmail);
+
+    if (!matchedUser) {
+      setErrorMessage('Invalid credentials: No account registered with this email address.');
+      return;
+    }
+
+    if (matchedUser.password !== cleanPassword) {
+      setErrorMessage('Invalid credentials: Incorrect password provided.');
+      return;
+    }
+
+    // Persist authenticated session
+    localStorage.setItem('token', `jwt-session-${matchedUser.id}-${Date.now()}`);
+    localStorage.setItem('user', JSON.stringify({
+      id: matchedUser.id,
+      email: matchedUser.email,
+      role: matchedUser.role,
+      full_name: matchedUser.full_name,
+      department: matchedUser.department,
+      rm_id: matchedUser.rm_id,
+      rm_name: matchedUser.rm_name
+    }));
+
+    // Dynamic role routing
+    const routes = {
+      operations: '/operations/dashboard',
+      hr: '/hr/dashboard',
+      rm: '/rm/dashboard',
+      intern: '/intern/dashboard'
+    };
+
+    window.location.href = routes[matchedUser.role] || '/login';
   };
 
-  const handleManualLogin = (e) => {
-    e.preventDefault();
-    const clean = email.trim().toLowerCase();
-    if (clean.includes('ops')) executeAuth('ops@system.com', 'operations', '/operations/dashboard', 'Chief Operations Officer');
-    else if (clean.includes('hr')) executeAuth('hr@system.com', 'hr', '/hr/dashboard', 'Senior HR Lead');
-    else if (clean.includes('rm')) executeAuth('rm@system.com', 'rm', '/rm/dashboard', 'Alex Rivera (RM)');
-    else executeAuth('intern@system.com', 'intern', '/intern/dashboard', 'Sarah Chen (Intern)');
+  const fillQuickCredential = (quickEmail) => {
+    setEmail(quickEmail);
+    setPassword('password123');
+    setErrorMessage('');
   };
 
   return (
-    <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'radial-gradient(ellipse at top, #1e1b4b 0%, #070b14 60%, #030712 100%)', overflow: 'hidden', padding: '20px' }}>
-      
-      {/* 3D Glowing Ambient Orbs */}
-      <div style={{ position: 'absolute', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, rgba(0,0,0,0) 70%)', top: '-10%', left: '15%', filter: 'blur(60px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(14,165,233,0.15) 0%, rgba(0,0,0,0) 70%)', bottom: '5%', right: '15%', filter: 'blur(60px)', pointerEvents: 'none' }} />
-
+    <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'radial-gradient(ellipse at top, #1e1b4b 0%, #070b14 60%, #030712 100%)', padding: '20px' }}>
       <div className="glass-card" style={{ padding: '40px', borderRadius: '24px', width: '100%', maxWidth: '440px', position: 'relative', zIndex: 10 }}>
-        
-        {/* Brand Header */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ display: 'inline-flex', padding: '12px', background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)', borderRadius: '16px', boxShadow: '0 10px 20px -5px rgba(79, 70, 229, 0.4)', marginBottom: '14px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ display: 'inline-flex', padding: '12px', background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)', borderRadius: '16px', marginBottom: '14px' }}>
             <span style={{ fontSize: '24px' }}>🏛️</span>
           </div>
-          <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', letterSpacing: '-0.5px', margin: '0 0 6px 0' }}>
-            Intern Management System
-          </h2>
-          <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>Enterprise Lifecycle & Mentorship Hub</p>
+          <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', margin: '0 0 6px 0' }}>Intern Management System</h2>
+          <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>Authenticated Multi-Role Enterprise Portal</p>
         </div>
 
-        {/* 1-Click Fast Gateways */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '24px' }}>
-          <button type="button" onClick={() => executeAuth('ops@system.com', 'operations', '/operations/dashboard', 'Chief Operations Officer')} style={{ padding: '12px', background: 'linear-gradient(180deg, #27160c 0%, #150d07 100%)', border: '1px solid #78350f', borderRadius: '10px', color: '#fde68a', fontWeight: '700', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s ease' }} className="nav-btn-motion">
-            ⚙️ Operations
-          </button>
-          <button type="button" onClick={() => executeAuth('hr@system.com', 'hr', '/hr/dashboard', 'Senior HR Lead')} style={{ padding: '12px', background: 'linear-gradient(180deg, #082f49 0%, #051a29 100%)', border: '1px solid #0369a1', borderRadius: '10px', color: '#7dd3fc', fontWeight: '700', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s ease' }} className="nav-btn-motion">
-            👑 HR Portal
-          </button>
-          <button type="button" onClick={() => executeAuth('rm@system.com', 'rm', '/rm/dashboard', 'Alex Rivera')} style={{ padding: '12px', background: 'linear-gradient(180deg, #1e1b4b 0%, #0f0d26 100%)', border: '1px solid #4338ca', borderRadius: '10px', color: '#c7d2fe', fontWeight: '700', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s ease' }} className="nav-btn-motion">
-            👔 Manager Hub
-          </button>
-          <button type="button" onClick={() => executeAuth('intern@system.com', 'intern', '/intern/dashboard', 'Sarah Chen')} style={{ padding: '12px', background: 'linear-gradient(180deg, #064e3b 0%, #032b21 100%)', border: '1px solid #047857', borderRadius: '10px', color: '#a7f3d0', fontWeight: '700', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s ease' }} className="nav-btn-motion">
-            🎓 Intern Portal
-          </button>
+        {/* Quick Role Fill Buttons (Populates Form For Testing) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+          <button type="button" onClick={() => fillQuickCredential('ops@system.com')} style={{ padding: '8px', background: 'rgba(217,119,6,0.15)', border: '1px solid rgba(217,119,6,0.4)', borderRadius: '8px', color: '#fde68a', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>⚙️ Ops Account</button>
+          <button type="button" onClick={() => fillQuickCredential('hr@system.com')} style={{ padding: '8px', background: 'rgba(2,132,199,0.15)', border: '1px solid rgba(2,132,199,0.4)', borderRadius: '8px', color: '#7dd3fc', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>👑 HR Account</button>
+          <button type="button" onClick={() => fillQuickCredential('rm@system.com')} style={{ padding: '8px', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '8px', color: '#c7d2fe', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>👔 RM Account</button>
+          <button type="button" onClick={() => fillQuickCredential('intern@system.com')} style={{ padding: '8px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)', borderRadius: '8px', color: '#a7f3d0', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>🎓 Intern Account</button>
         </div>
 
-        <div style={{ position: 'relative', textAlign: 'center', margin: '22px 0' }}>
-          <hr style={{ border: '0', borderTop: '1px solid rgba(255,255,255,0.08)' }} />
-          <span style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', padding: '0 12px', color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Corporate Sign In
-          </span>
-        </div>
+        {errorMessage && (
+          <div style={{ padding: '12px 14px', background: 'rgba(225,29,72,0.2)', border: '1px solid #e11d48', borderRadius: '10px', color: '#fda4af', fontSize: '13px', fontWeight: '600', marginBottom: '18px' }}>
+            {errorMessage}
+          </div>
+        )}
 
-        <form onSubmit={handleManualLogin}>
+        <form onSubmit={handleLogin}>
           <div style={{ marginBottom: '14px' }}>
             <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', fontWeight: '600', marginBottom: '6px' }}>Work Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" required style={{ width: '100%', padding: '12px 14px', background: 'rgba(7, 11, 20, 0.7)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@system.com" required style={{ width: '100%', padding: '12px 14px', background: 'rgba(7, 11, 20, 0.7)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: '#fff', fontSize: '13px' }} />
           </div>
 
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', fontSize: '12px', color: '#cbd5e1', fontWeight: '600', marginBottom: '6px' }}>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={{ width: '100%', padding: '12px 14px', background: 'rgba(7, 11, 20, 0.7)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: '#fff', fontSize: '13px', outline: 'none' }} />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={{ width: '100%', padding: '12px 14px', background: 'rgba(7, 11, 20, 0.7)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: '#fff', fontSize: '13px' }} />
           </div>
 
-          <button type="submit" style={{ width: '100%', background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)', color: '#fff', border: 'none', padding: '13px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '14px', boxShadow: '0 10px 20px -5px rgba(2, 132, 199, 0.4)' }} className="nav-btn-motion">
-            Launch Workspace →
+          <button type="submit" style={{ width: '100%', background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)', color: '#fff', border: 'none', padding: '13px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '14px' }}>
+            Authenticate & Launch →
           </button>
         </form>
-
       </div>
     </div>
   );
