@@ -6,9 +6,7 @@ import {
   IconBriefcase, 
   IconFileText, 
   IconCalendar, 
-  IconClock, 
-  IconLogOut, 
-  IconPlus 
+  IconLogOut 
 } from './common/Icons';
 import { DB } from '../services/store';
 
@@ -117,10 +115,6 @@ const RmDashboard = () => {
             <span style={{ background: '#c8f135', color: '#111215', fontSize: '10px', padding: '2px 7px', borderRadius: '10px', fontWeight: '800' }}>{tasks.length}</span>
           </button>
 
-          <button onClick={() => handleTabChange('attendance')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '12px', border: 'none', background: activeTab === 'attendance' ? '#22252a' : 'transparent', color: activeTab === 'attendance' ? '#ffffff' : '#94a3b8', cursor: 'pointer', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
-            <IconClock size={18} /> Live Attendance
-          </button>
-
           <button onClick={() => handleTabChange('reports')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: '12px', border: 'none', background: activeTab === 'reports' ? '#22252a' : 'transparent', color: activeTab === 'reports' ? '#ffffff' : '#94a3b8', cursor: 'pointer', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconFileText size={18} /> <span>Daily Reports</span></div>
             <span style={{ background: '#334155', color: '#f8fafc', fontSize: '10px', padding: '2px 7px', borderRadius: '10px', fontWeight: '700' }}>{reports.filter(r => r.status === 'PENDING').length}</span>
@@ -179,153 +173,160 @@ const RmDashboard = () => {
             </div>
           </div>
 
-          {/* Middle Row: Donut Split & Sprints Wave Chart */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '16px' }}>
-            
-            {/* Cohort Breakdown (Donut Style) */}
-            <div className="bento-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0 }}>Intern Department Split</h3>
-                <span style={{ fontSize: '11px', color: '#64748b', background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>This Month ▾</span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                {/* Visual Circle Mock */}
-                <div style={{ width: '110px', height: '110px', borderRadius: '50%', background: 'conic-gradient(#c8f135 0% 45%, #111215 45% 75%, #94a3b8 75% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: '65px', height: '65px', background: '#ffffff', borderRadius: '50%' }} />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, fontSize: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span><strong style={{ color: '#a3e635' }}>●</strong> Frontend Eng</span>
-                    <strong>45%</strong>
+          {/* TAB: DASHBOARD VIEW */}
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Middle Row: Donut Split & Sprints Wave Chart */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '16px' }}>
+                <div className="bento-card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0 }}>Intern Department Split</h3>
+                    <span style={{ fontSize: '11px', color: '#64748b', background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>This Month ▾</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span><strong style={{ color: '#111215' }}>●</strong> Cloud Infra</span>
-                    <strong>30%</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span><strong style={{ color: '#94a3b8' }}>●</strong> QA Testing</span>
-                    <strong>25%</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Performance Overview (Wave Chart Mock) */}
-            <div className="bento-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <div>
-                  <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0 }}>Sprint Efficiency Rate</h3>
-                  <div style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>94.2% <span style={{ fontSize: '12px', color: '#16a34a' }}>+15.5%</span></div>
-                </div>
-                <span style={{ fontSize: '11px', color: '#64748b', background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>This Month ▾</span>
-              </div>
-
-              {/* Chart Wave Line SVG */}
-              <svg viewBox="0 0 400 120" style={{ width: '100%', height: '110px' }}>
-                <defs>
-                  <linearGradient id="limeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#c8f135" stopOpacity="0.6"/>
-                    <stop offset="100%" stopColor="#c8f135" stopOpacity="0.0"/>
-                  </linearGradient>
-                </defs>
-                <path d="M0,80 Q50,40 100,70 T200,30 T300,50 T400,20 L400,120 L0,120 Z" fill="url(#limeGrad)" />
-                <path d="M0,80 Q50,40 100,70 T200,30 T300,50 T400,20" fill="none" stroke="#a3e635" strokeWidth="3" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Third Row: Progress List & Upcoming Deliverables */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            
-            {/* Intern Progress Bars */}
-            <div className="bento-card" style={{ padding: '20px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '700', margin: '0 0 16px 0' }}>Intern Hours Progress</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {interns.map(i => (
-                  <div key={i.id}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '600', marginBottom: '6px' }}>
-                      <span>{i.full_name}</span>
-                      <span style={{ color: '#64748b' }}>98.5 / 100 hrs</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div style={{ width: '110px', height: '110px', borderRadius: '50%', background: 'conic-gradient(#c8f135 0% 45%, #111215 45% 75%, #94a3b8 75% 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: '65px', height: '65px', background: '#ffffff', borderRadius: '50%' }} />
                     </div>
-                    <div style={{ width: '100%', height: '7px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: '92%', height: '100%', background: '#c8f135', borderRadius: '4px' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Upcoming Sprint Reviews */}
-            <div className="bento-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0 }}>Upcoming Deliverables</h3>
-                <span onClick={() => handleTabChange('tasks')} style={{ fontSize: '11px', color: '#64748b', cursor: 'pointer', fontWeight: '600' }}>View All ›</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {tasks.slice(0, 3).map(t => (
-                  <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📦</div>
-                      <div>
-                        <div style={{ fontWeight: '700' }}>{t.title}</div>
-                        <small style={{ color: '#64748b' }}>{t.intern_name}</small>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, fontSize: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span><strong style={{ color: '#a3e635' }}>●</strong> Frontend Eng</span>
+                        <strong>45%</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span><strong style={{ color: '#111215' }}>●</strong> Cloud Infra</span>
+                        <strong>30%</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span><strong style={{ color: '#94a3b8' }}>●</strong> QA Testing</span>
+                        <strong>25%</strong>
                       </div>
                     </div>
-                    <span style={{ fontWeight: '700', color: '#16a34a' }}>{t.due_date || 'Aug 28'}</span>
+                  </div>
+                </div>
+
+                <div className="bento-card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div>
+                      <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0 }}>Sprint Efficiency Rate</h3>
+                      <div style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>94.2% <span style={{ fontSize: '12px', color: '#16a34a' }}>+15.5%</span></div>
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#64748b', background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>This Month ▾</span>
+                  </div>
+
+                  <svg viewBox="0 0 400 120" style={{ width: '100%', height: '110px' }}>
+                    <defs>
+                      <linearGradient id="limeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#c8f135" stopOpacity="0.6"/>
+                        <stop offset="100%" stopColor="#c8f135" stopOpacity="0.0"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,80 Q50,40 100,70 T200,30 T300,50 T400,20 L400,120 L0,120 Z" fill="url(#limeGrad)" />
+                    <path d="M0,80 Q50,40 100,70 T200,30 T300,50 T400,20" fill="none" stroke="#a3e635" strokeWidth="3" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Bottom Table: Assigned Deliverables */}
+              <div className="bento-card" style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0 }}>Sprint Deliverables & Task Records</h3>
+                  <button onClick={() => setShowTaskModal(true)} style={{ background: '#111215', color: '#c8f135', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                    + Assign Task
+                  </button>
+                </div>
+
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '10px 8px' }}>Task Title</th>
+                      <th style={{ padding: '10px 8px' }}>Intern</th>
+                      <th style={{ padding: '10px 8px' }}>Module</th>
+                      <th style={{ padding: '10px 8px' }}>Priority</th>
+                      <th style={{ padding: '10px 8px' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tasks.map(t => (
+                      <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '12px 8px', fontWeight: '700' }}>{t.title}</td>
+                        <td style={{ padding: '12px 8px', color: '#64748b' }}>{t.intern_name}</td>
+                        <td style={{ padding: '12px 8px' }}>{t.project}</td>
+                        <td style={{ padding: '12px 8px' }}>
+                          <span style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '800', background: t.priority === 'HIGH' ? '#fee2e2' : '#fef9c3', color: t.priority === 'HIGH' ? '#dc2626' : '#a16207' }}>
+                            {t.priority}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 8px' }}>
+                          <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700', background: t.status === 'COMPLETED' ? '#dcfce7' : '#f1f5f9', color: t.status === 'COMPLETED' ? '#15803d' : '#475569' }}>
+                            {t.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {/* TAB: DAILY REPORTS REVIEW */}
+          {activeTab === 'reports' && (
+            <div className="bento-card" style={{ padding: '24px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 18px 0' }}>Daily Work Reports</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {reports.map(r => (
+                  <div key={r.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: '700', fontSize: '14px' }}>{r.intern_name} • {r.hours} hrs</div>
+                      <p style={{ margin: '4px 0', fontSize: '13px', color: '#334155' }}><strong>Summary:</strong> {r.summary}</p>
+                      <small style={{ color: '#ef4444' }}><strong>Blockers:</strong> {r.blockers || 'None'}</small>
+                    </div>
+                    {r.status === 'PENDING' ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleReviewReport(r.id, 'APPROVED')} style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}>✓ Approve</button>
+                        <button onClick={() => handleReviewReport(r.id, 'REJECTED')} style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}>✕ Reject</button>
+                      </div>
+                    ) : (
+                      <span style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '700', background: r.status === 'APPROVED' ? '#dcfce7' : '#fee2e2', color: r.status === 'APPROVED' ? '#15803d' : '#dc2626' }}>{r.status}</span>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Bottom Table: Assigned Deliverables Directory */}
-          <div className="bento-card" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0 }}>Sprint Deliverables & Task Records</h3>
-              <button onClick={() => setShowTaskModal(true)} style={{ background: '#111215', color: '#c8f135', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
-                + Assign Task
-              </button>
-            </div>
-
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '10px 8px' }}>Task Title</th>
-                  <th style={{ padding: '10px 8px' }}>Intern</th>
-                  <th style={{ padding: '10px 8px' }}>Module</th>
-                  <th style={{ padding: '10px 8px' }}>Priority</th>
-                  <th style={{ padding: '10px 8px' }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tasks.map(t => (
-                  <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 8px', fontWeight: '700' }}>{t.title}</td>
-                    <td style={{ padding: '12px 8px', color: '#64748b' }}>{t.intern_name}</td>
-                    <td style={{ padding: '12px 8px' }}>{t.project}</td>
-                    <td style={{ padding: '12px 8px' }}>
-                      <span style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '800', background: t.priority === 'HIGH' ? '#fee2e2' : '#fef9c3', color: t.priority === 'HIGH' ? '#dc2626' : '#a16207' }}>
-                        {t.priority}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px 8px' }}>
-                      <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700', background: t.status === 'COMPLETED' ? '#dcfce7' : '#f1f5f9', color: t.status === 'COMPLETED' ? '#15803d' : '#475569' }}>
-                        {t.status}
-                      </span>
-                    </td>
-                  </tr>
+          {/* TAB: LEAVE APPROVALS */}
+          {activeTab === 'leaves' && (
+            <div className="bento-card" style={{ padding: '24px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 18px 0' }}>Leave Applications</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {leaves.map(l => (
+                  <div key={l.id} style={{ padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: '700', fontSize: '14px' }}>{l.intern_name} — {l.type}</div>
+                      <small style={{ color: '#64748b' }}>Dates: {l.start_date} to {l.end_date}</small>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#334155' }}>Reason: {l.reason}</p>
+                    </div>
+                    {l.status === 'PENDING' ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleLeaveDecision(l.id, 'APPROVED')} style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}>✓ Approve</button>
+                        <button onClick={() => handleLeaveDecision(l.id, 'REJECTED')} style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}>✕ Reject</button>
+                      </div>
+                    ) : (
+                      <span style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '700', background: l.status === 'APPROVED' ? '#dcfce7' : '#fee2e2', color: l.status === 'APPROVED' ? '#15803d' : '#dc2626' }}>{l.status}</span>
+                    )}
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* Right 25% Sidebar Bento Panel */}
         <div style={{ width: '280px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* User Profile Card */}
           <div className="bento-card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#c8f135', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800' }}>
               DS
@@ -336,7 +337,6 @@ const RmDashboard = () => {
             </div>
           </div>
 
-          {/* Traffic / Submission Channels Card */}
           <div className="bento-card" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <h3 style={{ fontSize: '14px', fontWeight: '700', margin: 0 }}>Review Channels</h3>
@@ -358,7 +358,6 @@ const RmDashboard = () => {
             </div>
           </div>
 
-          {/* Recent Activity Stream */}
           <div className="bento-card" style={{ padding: '20px', flex: 1 }}>
             <h3 style={{ fontSize: '14px', fontWeight: '700', margin: '0 0 16px 0' }}>Recent Activity</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '12px' }}>
@@ -374,7 +373,6 @@ const RmDashboard = () => {
               </div>
             </div>
           </div>
-
         </div>
 
       </main>
@@ -395,6 +393,24 @@ const RmDashboard = () => {
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>Task Title</label>
                 <input type="text" value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} required placeholder="e.g. Design UI Components" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>Module / Project</label>
+                <input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Talent Engine" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>Priority</label>
+                  <select value={priority} onChange={(e) => setPriority(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                    <option value="HIGH">HIGH</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="LOW">LOW</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>Due Date</label>
+                  <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                 <button type="button" onClick={() => setShowTaskModal(false)} style={{ flex: 1, padding: '10px', background: '#f1f5f9', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>Cancel</button>
