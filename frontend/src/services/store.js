@@ -2,9 +2,9 @@
 const USERS_KEY = 'ims_users_db';
 const LEAVES_KEY = 'ims_leaves_db';
 const REPORTS_KEY = 'ims_reports_db';
+const TASKS_KEY = 'ims_tasks_db';
 const ATTENDANCE_KEY = 'ims_attendance_db';
 
-// Seed Initial Accounts (Default credentials)
 const defaultUsers = [
   { id: 1, full_name: 'Operations Admin', email: 'ops@system.com', password: 'password123', role: 'operations', department: 'Executive Management' },
   { id: 2, full_name: 'Senior HR Lead', email: 'hr@system.com', password: 'password123', role: 'hr', department: 'Human Resources' },
@@ -23,6 +23,12 @@ const defaultLeaves = [
   { id: 201, intern_id: 5, intern_name: 'Sarah Chen', rm_id: 3, type: 'Sick Leave', start_date: '2026-08-21', end_date: '2026-08-22', reason: 'Fever and viral infection', status: 'PENDING' }
 ];
 
+const defaultTasks = [
+  { id: 301, intern_id: 5, intern_name: 'Sarah Chen', rm_id: 3, title: 'Design Glassmorphism Dashboard UI Components', project: 'IMS Core', priority: 'HIGH', due_date: '2026-08-25', status: 'IN PROGRESS' },
+  { id: 302, intern_id: 5, intern_name: 'Sarah Chen', rm_id: 3, title: 'Implement Candidate PDF Parsing Module', project: 'Talent Engine', priority: 'MEDIUM', due_date: '2026-08-28', status: 'PENDING' },
+  { id: 303, intern_id: 6, intern_name: 'David Kim', rm_id: 3, title: 'Configure PostgreSQL Connection Pool', project: 'Infrastructure', priority: 'HIGH', due_date: '2026-08-26', status: 'COMPLETED' }
+];
+
 export const DB = {
   getUsers: () => {
     const data = localStorage.getItem(USERS_KEY);
@@ -36,12 +42,9 @@ export const DB = {
   addUser: (userData) => {
     const users = DB.getUsers();
     const cleanEmail = userData.email.trim().toLowerCase();
-    
-    // Uniqueness constraint enforcement (TC-002)
     if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
       throw new Error(`Email "${cleanEmail}" is already registered. Please use a unique email.`);
     }
-
     const newUser = {
       id: Date.now(),
       ...userData,
@@ -60,7 +63,36 @@ export const DB = {
     return users;
   },
 
-  // Leave persistence & cross-role sync (TC-004, TC-007)
+  // SPRINT TASKS
+  getTasks: () => {
+    const data = localStorage.getItem(TASKS_KEY);
+    if (!data) {
+      localStorage.setItem(TASKS_KEY, JSON.stringify(defaultTasks));
+      return defaultTasks;
+    }
+    return JSON.parse(data);
+  },
+
+  assignTask: (taskData) => {
+    const tasks = DB.getTasks();
+    const newTask = {
+      id: Date.now(),
+      status: 'PENDING',
+      created_at: new Date().toISOString(),
+      ...taskData
+    };
+    tasks.unshift(newTask);
+    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+    return newTask;
+  },
+
+  updateTaskStatus: (taskId, status) => {
+    const tasks = DB.getTasks().map(t => t.id === Number(taskId) ? { ...t, status } : t);
+    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+    return tasks;
+  },
+
+  // LEAVES
   getLeaves: () => {
     const data = localStorage.getItem(LEAVES_KEY);
     if (!data) {
@@ -89,7 +121,7 @@ export const DB = {
     return leaves;
   },
 
-  // Daily reports persistence & blocker propagation (TC-005, TC-006)
+  // REPORTS
   getReports: () => {
     const data = localStorage.getItem(REPORTS_KEY);
     if (!data) {
@@ -118,11 +150,11 @@ export const DB = {
     return reports;
   },
 
-  // Attendance & dynamic logged hours calculation (TC-008)
+  // ATTENDANCE & PUNCH TRACKING
   getAttendance: (userId) => {
     const data = localStorage.getItem(`${ATTENDANCE_KEY}_${userId}`);
     if (!data) {
-      return { clocked_in: false, clocked_out: false, clock_in_time: null, total_hours: 98.5 };
+      return { clocked_in: false, clocked_out: false, clock_in_time: null, clock_out_time: null, total_hours: 98.5 };
     }
     return JSON.parse(data);
   },

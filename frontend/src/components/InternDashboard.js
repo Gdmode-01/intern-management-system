@@ -4,6 +4,7 @@ import {
   IconDashboard, 
   IconClock, 
   IconFileText, 
+  IconCheckSquare, 
   IconCalendar, 
   IconLogOut 
 } from './common/Icons';
@@ -30,6 +31,9 @@ const InternDashboard = () => {
   const [attendance, setAttendance] = useState(() => DB.getAttendance(currentUser.id));
   const [attendanceNotice, setAttendanceNotice] = useState('');
 
+  // Tasks State
+  const [tasks, setTasks] = useState([]);
+
   // Daily Report State
   const [reportSummary, setReportSummary] = useState('');
   const [blockers, setBlockers] = useState('');
@@ -46,6 +50,10 @@ const InternDashboard = () => {
   const [leavesList, setLeavesList] = useState([]);
 
   const reloadData = () => {
+    // Synced tasks assigned by RM
+    const allTasks = DB.getTasks();
+    setTasks(allTasks.filter(t => t.intern_id === currentUser.id));
+
     const allReports = DB.getReports();
     setReportsList(allReports.filter(r => r.intern_id === currentUser.id));
 
@@ -67,7 +75,7 @@ const InternDashboard = () => {
     setSearchParams({ tab: tabName });
   };
 
-  // TC-008: Attendance Math Calculation
+  // Live Punch-In (Instantly notifies RM)
   const handleClockIn = () => {
     const record = {
       ...attendance,
@@ -77,9 +85,10 @@ const InternDashboard = () => {
     };
     DB.saveAttendance(currentUser.id, record);
     setAttendance(record);
-    setAttendanceNotice('⚡ Clocked In recorded successfully at ' + new Date().toLocaleTimeString());
+    setAttendanceNotice('⚡ Clocked In! Manager Alex Rivera can now see you as "Active On Duty".');
   };
 
+  // Live Punch-Out (Computes hours and marks complete)
   const handleClockOut = () => {
     if (!attendance.clocked_in) {
       setAttendanceNotice('⚠️ Please Clock In first before Clocking Out.');
@@ -101,7 +110,13 @@ const InternDashboard = () => {
     setAttendanceNotice(`✓ Clocked Out! Added +${durationHours} hrs to your Logged Hours.`);
   };
 
-  // TC-005: Daily Work Log Submission with Blockers
+  // Toggle Deliverable Status
+  const toggleTaskStatus = (id, currentStatus) => {
+    const nextStatus = currentStatus === 'COMPLETED' ? 'IN PROGRESS' : 'COMPLETED';
+    DB.updateTaskStatus(id, nextStatus);
+    reloadData();
+  };
+
   const handleReportSubmit = (e) => {
     e.preventDefault();
     if (!reportSummary.trim()) return;
@@ -124,7 +139,6 @@ const InternDashboard = () => {
     setTimeout(() => setReportMessage(''), 3000);
   };
 
-  // TC-004: Leave Request with Manager ID Linkage
   const handleLeaveSubmit = (e) => {
     e.preventDefault();
     if (!startDate || !endDate || !leaveReason.trim()) return;
@@ -176,6 +190,10 @@ const InternDashboard = () => {
           <button onClick={() => handleTabChange('punch')} className="nav-btn-motion" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'punch' ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'transparent', color: '#ffffff', cursor: 'pointer', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
             <IconClock size={18} /> Attendance Terminal
           </button>
+          <button onClick={() => handleTabChange('tasks')} className="nav-btn-motion" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'tasks' ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'transparent', color: '#ffffff', cursor: 'pointer', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><IconCheckSquare size={18} /> <span>Sprint Deliverables</span></div>
+            <span style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', fontSize: '11px', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>{tasks.length}</span>
+          </button>
           <button onClick={() => handleTabChange('reports')} className="nav-btn-motion" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '10px', border: 'none', background: activeTab === 'reports' ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'transparent', color: '#ffffff', cursor: 'pointer', textAlign: 'left', fontWeight: '600', fontSize: '13px' }}>
             <IconFileText size={18} /> Daily Work Logs
           </button>
@@ -206,25 +224,31 @@ const InternDashboard = () => {
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '18px', marginBottom: '32px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '18px', marginBottom: '32px' }}>
               <div className="stat-card-3d" style={{ padding: '22px', borderRadius: '16px' }}>
-                <div style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600' }}>Attendance Status</div>
-                <div style={{ fontSize: '28px', fontWeight: '800', marginTop: '8px', color: attendance.clocked_in ? '#10b981' : '#cbd5e1' }}>
-                  {attendance.clocked_in ? (attendance.clocked_out ? 'Clocked Out' : 'Active On Duty') : 'Not Clocked In'}
-                </div>
-                <small style={{ color: '#38bdf8', fontSize: '11px', fontWeight: '600' }}>Daily 09:00 - 18:00 IST</small>
+                <div style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600' }}>Tasks Assigned by RM</div>
+                <div style={{ fontSize: '30px', fontWeight: '800', marginTop: '8px', color: '#ffffff' }}>{tasks.filter(t => t.status === 'COMPLETED').length} / {tasks.length}</div>
+                <small style={{ color: '#10b981', fontSize: '11px', fontWeight: '600' }}>↗ Tasks Done</small>
               </div>
 
               <div className="stat-card-3d" style={{ padding: '22px', borderRadius: '16px' }}>
-                <div style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600' }}>Logged Hours (Calculated)</div>
-                <div style={{ fontSize: '32px', fontWeight: '800', marginTop: '8px', color: '#a5b4fc' }}>{attendance.total_hours} hrs</div>
-                <small style={{ color: '#10b981', fontSize: '11px', fontWeight: '600' }}>↗ Live Calculated from Punches</small>
+                <div style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600' }}>Shift Status</div>
+                <div style={{ fontSize: '24px', fontWeight: '800', marginTop: '8px', color: attendance.clocked_in && !attendance.clocked_out ? '#10b981' : '#cbd5e1' }}>
+                  {attendance.clocked_in && !attendance.clocked_out ? '🟢 On Duty' : '⚪ Shift Off'}
+                </div>
+                <small style={{ color: '#38bdf8', fontSize: '11px', fontWeight: '600' }}>Visible to Alex Rivera</small>
+              </div>
+
+              <div className="stat-card-3d" style={{ padding: '22px', borderRadius: '16px' }}>
+                <div style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600' }}>Logged Hours</div>
+                <div style={{ fontSize: '30px', fontWeight: '800', marginTop: '8px', color: '#a5b4fc' }}>{attendance.total_hours} hrs</div>
+                <small style={{ color: '#10b981', fontSize: '11px', fontWeight: '600' }}>↗ Live Calculated</small>
               </div>
 
               <div className="stat-card-3d" style={{ padding: '22px', borderRadius: '16px' }}>
                 <div style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600' }}>Reports Logged</div>
-                <div style={{ fontSize: '32px', fontWeight: '800', marginTop: '8px', color: '#fcd34d' }}>{reportsList.length}</div>
-                <small style={{ color: '#fcd34d', fontSize: '11px', fontWeight: '600' }}>↗ Synchronized with RM</small>
+                <div style={{ fontSize: '30px', fontWeight: '800', marginTop: '8px', color: '#fcd34d' }}>{reportsList.length}</div>
+                <small style={{ color: '#fcd34d', fontSize: '11px', fontWeight: '600' }}>↗ Synced with RM</small>
               </div>
             </div>
 
@@ -232,8 +256,8 @@ const InternDashboard = () => {
               <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '700', color: '#ffffff' }}>Active Sprint Milestone</h3>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(15,23,42,0.6)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div>
-                  <h4 style={{ margin: '0 0 4px 0', color: '#ffffff' }}>Sprint #3: Enterprise Management System Stabilization</h4>
-                  <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>Implement cross-role state sync, verified leave persistence, and blocker tracking.</p>
+                  <h4 style={{ margin: '0 0 4px 0', color: '#ffffff' }}>Sprint: Real-Time Mentorship & Tasks Lifecycle</h4>
+                  <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>Tasks and punch-in status are directly monitored by Manager {currentUser.rm_name}.</p>
                 </div>
                 <span style={{ padding: '6px 14px', background: 'rgba(56,189,248,0.15)', color: '#38bdf8', borderRadius: '20px', fontSize: '12px', fontWeight: '700' }}>ACTIVE</span>
               </div>
@@ -245,7 +269,7 @@ const InternDashboard = () => {
         {activeTab === 'punch' && (
           <div className="glass-card" style={{ padding: '36px', borderRadius: '20px', maxWidth: '560px' }}>
             <h2 style={{ marginTop: 0, fontSize: '20px', fontWeight: '800', color: '#ffffff' }}>Digital Attendance Punch</h2>
-            <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '24px' }}>Records timestamps and computes total working duration.</p>
+            <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '24px' }}>Punch records are visible to your manager on their Live Attendance radar.</p>
 
             <div style={{ fontSize: '42px', fontWeight: '900', textAlign: 'center', margin: '28px 0', color: '#38bdf8', letterSpacing: '2px' }}>
               {currentTime}
@@ -254,8 +278,8 @@ const InternDashboard = () => {
             {attendanceNotice && <div style={{ padding: '12px', background: 'rgba(56,189,248,0.15)', color: '#7dd3fc', borderRadius: '8px', marginBottom: '20px', fontSize: '13px', textAlign: 'center', fontWeight: '600' }}>{attendanceNotice}</div>}
 
             <div style={{ display: 'flex', gap: '14px' }}>
-              <button onClick={handleClockIn} disabled={attendance.clocked_in && !attendance.clocked_out} className="nav-btn-motion" style={{ flex: 1, padding: '14px', background: attendance.clocked_in ? 'rgba(5,150,105,0.3)' : 'linear-gradient(135deg, #059669 0%, #10b981 100%)', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '14px' }}>
-                {attendance.clocked_in ? '✓ Clocked In Today' : '⚡ Clock In / Punch In'}
+              <button onClick={handleClockIn} disabled={attendance.clocked_in && !attendance.clocked_out} className="nav-btn-motion" style={{ flex: 1, padding: '14px', background: attendance.clocked_in && !attendance.clocked_out ? 'rgba(5,150,105,0.3)' : 'linear-gradient(135deg, #059669 0%, #10b981 100%)', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '14px' }}>
+                {attendance.clocked_in && !attendance.clocked_out ? '✓ Active On Duty' : '⚡ Clock In / Punch In'}
               </button>
               <button onClick={handleClockOut} disabled={!attendance.clocked_in || attendance.clocked_out} className="nav-btn-motion" style={{ flex: 1, padding: '14px', background: attendance.clocked_out ? 'rgba(225,29,72,0.3)' : 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '14px' }}>
                 {attendance.clocked_out ? '✓ Clocked Out Today' : '🚪 Clock Out / Punch Out'}
@@ -264,7 +288,41 @@ const InternDashboard = () => {
           </div>
         )}
 
-        {/* DAILY REPORTS TAB (WITH BLOCKER FIELD) */}
+        {/* TASKS TAB (DELIVERABLES ASSIGNED BY RM) */}
+        {activeTab === 'tasks' && (
+          <div className="glass-card" style={{ padding: '28px', borderRadius: '18px' }}>
+            <h2 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '800', color: '#ffffff' }}>My Sprint Deliverables ({tasks.length})</h2>
+            <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '24px' }}>Assigned directly by Manager {currentUser.rm_name}. Click to update progress.</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {tasks.length === 0 ? (
+                <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8' }}>No active tasks assigned yet by your manager.</div>
+              ) : (
+                tasks.map(t => (
+                  <div key={t.id} style={{ padding: '18px', background: 'rgba(15,23,42,0.6)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '15px', fontWeight: '700', color: t.status === 'COMPLETED' ? '#10b981' : '#ffffff', textDecoration: t.status === 'COMPLETED' ? 'line-through' : 'none' }}>
+                          {t.title}
+                        </span>
+                        <span style={{ padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '800', background: t.priority === 'HIGH' ? 'rgba(225,29,72,0.2)' : 'rgba(2,132,199,0.2)', color: t.priority === 'HIGH' ? '#fda4af' : '#93c5fd' }}>
+                          {t.priority}
+                        </span>
+                      </div>
+                      <small style={{ color: '#94a3b8', display: 'block', marginTop: '6px' }}>Module: <strong style={{ color: '#cbd5e1' }}>{t.project}</strong> • Due Date: <strong style={{ color: '#a5b4fc' }}>{t.due_date || t.due}</strong></small>
+                    </div>
+
+                    <button onClick={() => toggleTaskStatus(t.id, t.status)} className="nav-btn-motion" style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: t.status === 'COMPLETED' ? 'rgba(5,150,105,0.2)' : 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)', color: t.status === 'COMPLETED' ? '#6ee7b7' : '#ffffff', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}>
+                      {t.status === 'COMPLETED' ? '✓ Completed' : 'Mark Done'}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* DAILY REPORTS TAB */}
         {activeTab === 'reports' && (
           <div>
             <div className="glass-card" style={{ padding: '30px', borderRadius: '18px', marginBottom: '28px' }}>
